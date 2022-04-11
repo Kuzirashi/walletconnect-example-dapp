@@ -34,4 +34,4 @@ jobs:
 
       - name: 'Deploy to S3: Staging'
         if: github.ref == 'refs/heads/master'
-        run: aws s3 sync build s3://${{ env.STAGING_BUCKET_NAME }}/app --delete
+        run: aws s3 sync build s3://${{ env.STAGING_BUCKET_NAME }}/ --delete
