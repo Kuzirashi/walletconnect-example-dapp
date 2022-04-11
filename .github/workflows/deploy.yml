@@ -18,12 +18,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 12
+          node-version: 14
 
       # Set production flag on staging
 
-      - run: npm install
-      - run: npm run build
+      - run: yarn
+      - run: yarn build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
