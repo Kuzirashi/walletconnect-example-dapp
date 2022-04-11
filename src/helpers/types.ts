@@ -15,6 +15,7 @@ export interface IChainData {
   network_id: number;
   rpc_url: string;
   native_currency: IAssetData;
+  use_rpc_calls?: boolean;
 }
 export interface ITxData {
   from: string;

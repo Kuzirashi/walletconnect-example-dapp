@@ -17,12 +17,14 @@ import {
   verifySignature,
   hashTypedDataMessage,
   hashMessage,
+  getChainData,
 } from "./helpers/utilities";
 import { convertAmountToRawNumber, convertStringToHex } from "./helpers/bignumber";
 import { IAssetData } from "./helpers/types";
 import Banner from "./components/Banner";
 import AccountAssets from "./components/AccountAssets";
 import { eip712 } from "./helpers/eip712";
+import { ethers } from "ethers";
 
 const SLayout = styled.div`
   position: relative;
@@ -281,6 +283,23 @@ class App extends React.Component<any, any> {
 
   public toggleModal = () => this.setState({ showModal: !this.state.showModal });
 
+  public getPopulatedTransferTx = async () => {
+    const { connector, address, chainId } = this.state;
+
+    if (!connector) {
+      return;
+    }
+
+    const humanReadableAbi = [
+      {"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}
+    ];
+
+    const token = new ethers.Contract(getChainData(chainId).native_currency.contractAddress, humanReadableAbi);
+    const populatedTx = await token.populateTransaction.approve(address, 0);
+
+    return populatedTx;
+  }
+
   public testSendTransaction = async () => {
     const { connector, address, chainId } = this.state;
 
@@ -292,37 +311,38 @@ class App extends React.Component<any, any> {
     const from = address;
 
     // to
-    const to = address;
+    const populatedTx = await this.getPopulatedTransferTx();
 
     // nonce
     const _nonce = await apiGetAccountNonce(address, chainId);
     const nonce = sanitizeHex(convertStringToHex(_nonce));
 
     // gasPrice
-    const gasPrices = await apiGetGasPrices();
+    const gasPrices = await apiGetGasPrices(chainId);
     const _gasPrice = gasPrices.slow.price;
-    const gasPrice = sanitizeHex(convertStringToHex(convertAmountToRawNumber(_gasPrice, 9)));
+    const gasPrice = sanitizeHex(convertStringToHex(convertAmountToRawNumber(_gasPrice, 0)));
 
     // gasLimit
-    const _gasLimit = 21000;
+    const _gasLimit = 6000000;
     const gasLimit = sanitizeHex(convertStringToHex(_gasLimit));
 
     // value
     const _value = 0;
     const value = sanitizeHex(convertStringToHex(_value));
 
-    // data
-    const data = "0x";
+    if (!populatedTx) {
+      throw new Error('!populatedTx');
+    }
 
     // test transaction
     const tx = {
       from,
-      to,
+      to: populatedTx.to,
       nonce,
       gasPrice,
       gasLimit,
       value,
-      data,
+      data: populatedTx.data,
     };
 
     try {
@@ -337,10 +357,10 @@ class App extends React.Component<any, any> {
 
       // format displayed result
       const formattedResult = {
-        method: "eth_sendTransaction",
+        method: "eth_sendTransaction (reset ERC20 native token allowance to zero)",
         txHash: result,
         from: address,
-        to: address,
+        to: getChainData(chainId).native_currency.contractAddress,
         value: `${_value} ETH`,
       };
 
@@ -374,9 +394,9 @@ class App extends React.Component<any, any> {
     const nonce = sanitizeHex(convertStringToHex(_nonce));
 
     // gasPrice
-    const gasPrices = await apiGetGasPrices();
+    const gasPrices = await apiGetGasPrices(chainId);
     const _gasPrice = gasPrices.slow.price;
-    const gasPrice = sanitizeHex(convertStringToHex(convertAmountToRawNumber(_gasPrice, 9)));
+    const gasPrice = sanitizeHex(convertStringToHex(convertAmountToRawNumber(_gasPrice, 0)));
 
     // gasLimit
     const _gasLimit = 21000;

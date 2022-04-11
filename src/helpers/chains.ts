@@ -273,4 +273,21 @@ export const SUPPORTED_CHAINS: IChainData[] = [
     chain_id: 10,
     network_id: 10,
   },
+  {
+    name: "Godwoken Testnet v1.0",
+    chain: "Godwoken",
+    rpc_url: "https://godwoken-testnet-web3-v1-rpc.ckbapp.dev/",
+    network: "testnet",
+    native_currency: {
+      name: "pCKB",
+      symbol: "pCKB",
+      decimals: "18",
+      contractAddress: "0x4B6DFa286F196F61134b03e783d73708687B93D0",
+      balance: "",
+    },
+    short_name: "gwtest1",
+    chain_id: 868455272153094,
+    network_id: 868455272153094,
+    use_rpc_calls: true
+  },
 ];
